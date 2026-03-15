@@ -12,12 +12,7 @@ Study reference for the cybersecurity workshops at SSPS. Covers all 6 topics fro
 | 4 | Cryptography | 8. 3. 2026 |
 | 5 | Programming | 14. 3. 2026 |
 | 6 | Cyber attacks & OSINT | 15. 3. 2026 |
- 
-## Stack
- 
-Single HTML file — no dependencies, no build step, no npm install. Just open `kbb.html` in a browser.
- 
-Fonts via Google Fonts (JetBrains Mono + Syne), everything else is vanilla HTML/CSS/JS.
+
  
 ## Notes
  
