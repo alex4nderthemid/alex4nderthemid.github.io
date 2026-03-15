@@ -406,6 +406,143 @@
 
   .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   @media(max-width: 700px) { .two-col { grid-template-columns: 1fr; } }
+
+  /* ---- CARD CLICKABLE ---- */
+  .card {
+    cursor: pointer;
+  }
+  .card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(0,229,255,0.08);
+  }
+  .card::after {
+    content: '⤢';
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    font-size: 14px;
+    color: var(--muted);
+    transition: color 0.15s ease, opacity 0.15s ease;
+    opacity: 0;
+  }
+  .card { position: relative; transition: border-color 0.15s ease, transform 0.2s ease, box-shadow 0.2s ease; }
+  .card:hover::after { color: var(--accent); opacity: 1; }
+
+  /* ---- MODAL OVERLAY ---- */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(4, 8, 16, 0);
+    backdrop-filter: blur(0px);
+    -webkit-backdrop-filter: blur(0px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    pointer-events: none;
+    transition:
+      background 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+      backdrop-filter 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .modal-overlay.open {
+    background: rgba(4, 8, 16, 0.88);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    pointer-events: all;
+  }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    width: 100%;
+    max-width: 680px;
+    max-height: 85vh;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+    padding: 36px;
+    position: relative;
+    opacity: 0;
+    transform: scale(0.55);
+    transition:
+      opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 40px 120px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,229,255,0.06);
+    will-change: transform, opacity;
+  }
+
+  .modal-overlay.open .modal {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--muted);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+    line-height: 1;
+  }
+  .modal-close:hover { border-color: var(--red); color: var(--red); }
+
+  .modal-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-bottom: 28px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+    padding-right: 40px;
+  }
+
+  .modal .entry {
+    margin-bottom: 24px;
+    padding-left: 16px;
+    border-left: 2px solid var(--border);
+  }
+
+  .modal .entry h4 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 6px;
+  }
+
+  .modal .entry p {
+    font-size: 13px;
+    line-height: 1.7;
+    opacity: 0.85;
+  }
+
+  .modal .entry:last-child { margin-bottom: 0; }
+
+  .modal-hint {
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    text-align: center;
+    letter-spacing: 0.08em;
+  }
 </style>
 </head>
 <body>
@@ -960,6 +1097,16 @@ int <span class="kw">main</span>() {
   <div class="wrap">SSPS KBB Workshop · hater.dev · přijímací řízení</div>
 </footer>
 
+<!-- MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModalOnBg(event)">
+  <div class="modal" id="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-title" id="modal-title"></div>
+    <div id="modal-body"></div>
+    <div class="modal-hint">ESC nebo kliknutí mimo pro zavření</div>
+  </div>
+</div>
+
 <script>
   function show(id, btn) {
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
@@ -967,6 +1114,50 @@ int <span class="kw">main</span>() {
     document.getElementById('panel-' + id).classList.add('active');
     btn.classList.add('active');
   }
+
+  function openModal(titleText, titleColor, entriesHTML) {
+    const overlay = document.getElementById('modal-overlay');
+    const title = document.getElementById('modal-title');
+    const body = document.getElementById('modal-body');
+    title.textContent = titleText;
+    title.style.color = titleColor || 'var(--accent)';
+    body.innerHTML = entriesHTML;
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    document.getElementById('modal-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  function closeModalOnBg(e) {
+    if (e.target === document.getElementById('modal-overlay')) closeModal();
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeModal();
+  });
+
+  // Make all .card elements clickable — extract their title + entries
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.card').forEach(card => {
+      card.addEventListener('click', () => {
+        const titleEl = card.querySelector('.card-title');
+        const titleText = titleEl ? titleEl.textContent.trim() : '';
+        const titleColor = titleEl ? titleEl.style.color : 'var(--accent)';
+        const entries = card.querySelectorAll('.entry');
+        let html = '';
+        entries.forEach(entry => {
+          html += `<div class="entry">${entry.innerHTML}</div>`;
+        });
+        // Also grab any code-blocks or tags inside the card
+        const extras = card.querySelectorAll('.code-block, .tags, .divider');
+        // Already included via entry innerHTML — just open
+        openModal(titleText, titleColor, html);
+      });
+    });
+  });
 </script>
 </body>
 </html>
