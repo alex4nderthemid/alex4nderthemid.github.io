@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KBB — SSPS Workshop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080c12;
+    --surface: #0e1521;
+    --surface2: #141d2e;
+    --border: #1e2d45;
+    --accent: #00e5ff;
+    --accent2: #7c3aed;
+    --red: #ff4757;
+    --green: #00ff9d;
+    --yellow: #ffd32a;
+    --orange: #ff6b35;
+    --text: #c8d8e8;
+    --muted: #4a6080;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Syne', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ---- GRID NOISE BACKGROUND ---- */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ---- HEADER ---- */
+  header {
+    padding: 48px 0 40px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 48px;
+  }
+
+  .header-inner {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .logo-block h1 {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: #fff;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .logo-block h1 span {
+    color: var(--accent);
+  }
+
+  .logo-block p {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+  }
+
+  .header-badges {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .badge {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .badge-red { background: rgba(255,71,87,0.12); color: var(--red); border: 1px solid rgba(255,71,87,0.25); }
+  .badge-cyan { background: rgba(0,229,255,0.08); color: var(--accent); border: 1px solid rgba(0,229,255,0.2); }
+
+  /* ---- NAV TABS ---- */
+  nav {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 48px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+
+  nav::-webkit-scrollbar { display: none; }
+
+  .tab {
+    flex-shrink: 0;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 9px 18px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+  }
+
+  .tab:hover { border-color: var(--accent); color: var(--accent); }
+
+  .tab.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #000;
+    font-weight: 700;
+  }
+
+  /* ---- PANELS ---- */
+  .panel { display: none; }
+  .panel.active { display: block; animation: fadein 0.2s ease; }
+
+  @keyframes fadein {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ---- SECTION TITLES ---- */
+  .section-heading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+
+  .section-heading .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .section-heading h2 {
+    font-size: 13px;
+    font-family: var(--mono);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+  }
+
+  /* ---- CARDS GRID ---- */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    transition: border-color 0.15s ease;
+  }
+
+  .card:hover { border-color: var(--accent); }
+
+  .card-title {
+    font-size: 12px;
+    font-family: var(--mono);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .entry {
+    margin-bottom: 16px;
+    padding-left: 12px;
+    border-left: 2px solid var(--border);
+    transition: border-color 0.15s ease;
+  }
+
+  .card:hover .entry:hover { border-left-color: var(--accent); }
+
+  .entry h4 {
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 3px;
+  }
+
+  .entry p {
+    font-size: 12px;
+    color: var(--text);
+    line-height: 1.6;
+    opacity: 0.8;
+  }
+
+  .entry:last-child { margin-bottom: 0; }
+
+  /* ---- CODE BLOCKS ---- */
+  .code-block {
+    background: #000;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    position: relative;
+  }
+
+  .code-block .cb-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 12px;
+  }
+
+  .code-block pre {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--green);
+    line-height: 1.7;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+
+  .code-block pre .comment { color: var(--muted); }
+  .code-block pre .cmd { color: var(--accent); }
+  .code-block pre .path { color: var(--yellow); }
+  .code-block pre .kw { color: var(--orange); }
+
+  /* ---- CMD TABLE ---- */
+  .cmd-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  .cmd-row {
+    background: #000;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .cmd-row code {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .cmd-row span {
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  /* ---- ALERT BOX ---- */
+  .alert {
+    padding: 16px 20px;
+    border-radius: 8px;
+    margin-bottom: 24px;
+    font-size: 12px;
+    font-family: var(--mono);
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .alert-warn { background: rgba(255,107,53,0.08); border: 1px solid rgba(255,107,53,0.2); color: var(--orange); }
+  .alert-info { background: rgba(0,229,255,0.06); border: 1px solid rgba(0,229,255,0.15); color: var(--accent); }
+
+  /* ---- TAG PILLS ---- */
+  .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+
+  .tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1px solid;
+  }
+
+  .tag-cyan { color: var(--accent); border-color: rgba(0,229,255,0.25); background: rgba(0,229,255,0.06); }
+  .tag-red { color: var(--red); border-color: rgba(255,71,87,0.25); background: rgba(255,71,87,0.06); }
+  .tag-green { color: var(--green); border-color: rgba(0,255,157,0.25); background: rgba(0,255,157,0.06); }
+  .tag-yellow { color: var(--yellow); border-color: rgba(255,211,42,0.25); background: rgba(255,211,42,0.06); }
+  .tag-purple { color: #a78bfa; border-color: rgba(167,139,250,0.25); background: rgba(167,139,250,0.06); }
+  .tag-orange { color: var(--orange); border-color: rgba(255,107,53,0.25); background: rgba(255,107,53,0.06); }
+
+  /* ---- WIDE CARD ---- */
+  .card-wide {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+
+  .card-wide .card-title { margin-bottom: 16px; }
+
+  /* ---- DIVIDER ---- */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 32px 0;
+  }
+
+  /* ---- FS TREE ---- */
+  .fs-tree {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--green);
+    line-height: 1.9;
+  }
+
+  .fs-tree .d { color: var(--accent); }
+  .fs-tree .c { color: var(--muted); }
+
+  /* ---- QUESTION BOX ---- */
+  .question-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--yellow);
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin-top: 32px;
+  }
+
+  .question-box .q-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--yellow);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+  }
+
+  .question-box p { font-size: 13px; color: #fff; }
+  .question-box .answer { font-size: 12px; color: var(--muted); margin-top: 6px; font-family: var(--mono); }
+
+  /* ---- FOOTER ---- */
+  footer {
+    margin-top: 80px;
+    padding: 32px 0;
+    border-top: 1px solid var(--border);
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  /* ---- COLOR DOTS PER TAB ---- */
+  .dot-cyan { background: var(--accent); }
+  .dot-green { background: var(--green); }
+  .dot-blue { background: #3b82f6; }
+  .dot-yellow { background: var(--yellow); }
+  .dot-purple { background: #a78bfa; }
+  .dot-red { background: var(--red); }
+  .dot-orange { background: var(--orange); }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media(max-width: 700px) { .two-col { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-inner">
+      <div class="logo-block">
+        <h1>SSPS <span>KBB</span></h1>
+        <p>// Workshop · Kybernetická bezpečnost · Přijímací řízení</p>
+      </div>
+      <div class="header-badges">
+        <span class="badge badge-red">⬤ hater.dev</span>
+        <span class="badge badge-cyan">All-in-one</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- NAV -->
+  <nav>
+    <button class="tab active" onclick="show('uvod', this)">01 · Úvod & Malware</button>
+    <button class="tab" onclick="show('linux', this)">02 · Linux</button>
+    <button class="tab" onclick="show('site', this)">03 · Sítě</button>
+    <button class="tab" onclick="show('krypto', this)">04 · Kryptografie</button>
+    <button class="tab" onclick="show('prog', this)">05 · Programování</button>
+    <button class="tab" onclick="show('utoky', this)">06 · Útoky & OSINT</button>
+  </nav>
+
+  <!-- ===== PANEL 1: ÚVOD ===== -->
+  <div class="panel active" id="panel-uvod">
+    <div class="section-heading">
+      <div class="dot dot-cyan"></div>
+      <h2>Úvod do KBB &amp; Malware</h2>
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <div class="card-title" style="color: var(--accent)">Typy hackerů</div>
+        <div class="entry"><h4>⬜ White Hat</h4><p>Etičtí hackeři. Identifikují a opravují zranitelnosti <em>se svolením</em> organizace.</p></div>
+        <div class="entry"><h4>⬜ Gray Hat</h4><p>Bez kriminálních úmyslů, ale nabourávají se bez souhlasu — obvykle aby upozornili na chybu.</p></div>
+        <div class="entry"><h4 style="color:var(--red)">⬛ Black Hat</h4><p>Kyberzločinec. Jedná nelegálně pro vlastní prospěch.</p></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="color: var(--accent)">Týmy etických hackerů</div>
+        <div class="entry"><h4 style="color:var(--red)">Red Team</h4><p>Ofenzivní tým. Hledá zranitelnosti, provádí penetrační testování.</p></div>
+        <div class="entry"><h4 style="color:#3b82f6">Blue Team</h4><p>Defenzivní tým. Ochraňuje sítě, kontroluje logy, funguje jako tech support.</p></div>
+        <div class="entry"><h4 style="color:#a78bfa">Purple Team</h4><p>Zajišťuje komunikaci a spolupráci mezi Red a Blue týmem.</p></div>
+      </div>
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <div class="card-title" style="color: var(--red)">Druhy malwaru</div>
+        <div class="entry"><h4>Virus</h4><p>Šíří se vkládáním do jiných spustitelných souborů či dokumentů. Bez vědomí uživatele.</p></div>
+        <div class="entry"><h4>Červ (Worm)</h4><p>Šíří se přes sítě využitím zranitelností OS. Nepotřebuje hostitele.</p></div>
+        <div class="entry"><h4>Trojský kůň</h4><p>Tváří se jako užitečný software (hra, nástroj), ale skrytě škodí.</p></div>
+        <div class="entry"><h4>Adware / Spyware</h4><p>Zahlcuje reklamou / špehovává. Spyware: Keylogger (klávesy), Screenlogger (obrazovka).</p></div>
+        <div class="entry"><h4>Ransomware</h4><p>Zašifruje disk a požaduje výkupné. Varianty: šifrovací (přístup zachován) a zamykací (blokuje vše).</p></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="color: var(--red)">Speciální typy malwaru</div>
+        <div class="entry"><h4>Polymorfický</h4><p>Mění vlastní kód při každém běhu — obtížná detekce antivirem.</p></div>
+        <div class="entry"><h4>File-less</h4><p>Existuje pouze v RAM. Nepíše soubory na disk — neviditelný pro klasické AV nástroje.</p></div>
+        <div class="divider" style="margin:12px 0"></div>
+        <div class="card-title" style="color: var(--yellow); border-bottom:none; padding-bottom:4px;">Analýza malwaru</div>
+        <div class="entry"><h4>Statická</h4><p>Bez spuštění kódu. Nástroj: <code style="color:var(--accent);font-family:var(--mono);font-size:11px">virustotal.com</code></p></div>
+        <div class="entry"><h4>Dynamická</h4><p>Analýza chování při spuštění v izolaci. Nástroj: <code style="color:var(--accent);font-family:var(--mono);font-size:11px">any.run</code></p></div>
+      </div>
+    </div>
+
+    <div class="card-wide">
+      <div class="card-title" style="color: var(--yellow)">Ransomware skupiny</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px">
+        <div class="entry"><h4>REvil</h4><p>Zaniklá skupina — poskytovala RaaS (Ransomware as a Service).</p></div>
+        <div class="entry"><h4>Lazarus</h4><p>Severokorejská státem sponzorovaná skupina.</p></div>
+        <div class="entry"><h4>Cyber Partisans</h4><p>Běloruská hacktivistická skupina. Požadovala místo peněz politické cíle — propuštění 50 vězňů.</p></div>
+      </div>
+    </div>
+
+    <div class="question-box">
+      <div class="q-label">Typická otázka z přijímaček</div>
+      <p>Jaký obor na naší škole nenaleznete?</p>
+      <div class="answer">→ b) Cestovní ruch</div>
+    </div>
+  </div>
+
+  <!-- ===== PANEL 2: LINUX ===== -->
+  <div class="panel" id="panel-linux">
+    <div class="section-heading">
+      <div class="dot dot-green"></div>
+      <h2>Linux &amp; Terminál</h2>
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <div class="card-title" style="color: var(--green)">Jádro a filozofie</div>
+        <div class="entry"><h4>Kernel</h4><p>Jádro systému (Linus Torvalds). Rozhraní mezi HW a programy. Spravuje paměť, disky, procesy.</p></div>
+        <div class="entry"><h4>GNU</h4><p>"GNU's Not Unix" (Richard Stallman). Sada utilit k jádru — init systémy, bootloadery, DE, WM.</p></div>
+        <div class="entry"><h4>Open Source</h4><p>Kód veřejně dostupný pro všechny. Každý si může přečíst jak projekt funguje.</p></div>
+        <div class="entry"><h4>Vše je soubor</h4><p>Filozofie Unixu — disky, procesy, porty — vše je reprezentováno jako soubor.</p></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="color: var(--green)">Distribuce & Instalace</div>
+        <div class="entry"><h4>Package managery</h4><p>apt (Debian/Ubuntu), pacman (Arch), dnf (Fedora). Liší se podle distribuce.</p></div>
+        <div class="entry"><h4>Virtualizace</h4><p>Pro testování bez přepsání disku: <strong>VMware</strong>, <strong>VirtualBox</strong>.</p></div>
+        <div class="entry"><h4>Instalace</h4><p>Vyžaduje rozdělení disku: <strong>swap</strong> (náhrada RAM), <strong>root</strong> (/), <strong>boot</strong>.</p></div>
+        <div class="entry"><h4>Oblíbené distros</h4>
+          <div class="tags">
+            <span class="tag tag-cyan">Ubuntu</span><span class="tag tag-green">Debian</span><span class="tag tag-yellow">Arch</span><span class="tag tag-purple">Kali</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-wide">
+      <div class="card-title" style="color: var(--green)">Linux Filesystem</div>
+      <div class="fs-tree">
+<span class="d">/</span>                 <span class="c"># root — počátek disku</span>
+├── <span class="d">bin/</span>             <span class="c"># základní spustitelné programy</span>
+├── <span class="d">dev/</span>             <span class="c"># disky, porty, periferie jako soubory</span>
+├── <span class="d">etc/</span>             <span class="c"># konfigurační soubory systému a programů</span>
+├── <span class="d">home/</span>            <span class="c"># domovské složky uživatelů</span>
+├── <span class="d">lib/</span>             <span class="c"># systémové knihovny</span>
+├── <span class="d">sbin/</span>            <span class="c"># systémové spustitelné programy (root)</span>
+├── <span class="d">tmp/</span>             <span class="c"># dočasné soubory → mažou se po restartu</span>
+├── <span class="d">usr/</span>             <span class="c"># uživatelská data a programy</span>
+│   ├── <span class="d">bin/</span>         <span class="c"># programy uživatele</span>
+│   ├── <span class="d">lib/</span>         <span class="c"># knihovny</span>
+│   └── <span class="d">share/</span>       <span class="c"># sdílená data, dokumentace</span>
+└── <span class="d">var/</span>             <span class="c"># proměnlivá data</span>
+    ├── <span class="d">log/</span>         <span class="c"># logy systému a služeb</span>
+    └── <span class="d">tmp/</span>         <span class="c"># dočasné soubory</span>
+      </div>
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <div class="card-title" style="color: var(--green)">Soubory v Linuxu</div>
+        <div class="entry"><h4>Magic Numbers</h4><p>Unix neurčuje typ souboru podle přípony, ale podle prvních bajtů (header) — tzv. magic numbers. Příkaz <code style="color:var(--accent);font-family:var(--mono);font-size:11px">file</code>.</p></div>
+        <div class="entry"><h4>Relativní vs absolutní cesta</h4><p>Absolutní = celá cesta z /root. Relativní = cesta z aktuální složky. <code style="color:var(--yellow);font-family:var(--mono);font-size:11px">~</code> = /home, <code style="color:var(--yellow);font-family:var(--mono);font-size:11px">-</code> = předchozí složka.</p></div>
+        <div class="entry"><h4>Shell redirection</h4><p><code style="color:var(--accent);font-family:var(--mono)">|</code> piping, <code style="color:var(--accent);font-family:var(--mono)">></code> přepis souboru, <code style="color:var(--accent);font-family:var(--mono)">>></code> přidání na konec.</p></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="color: var(--green)">Oprávnění souborů</div>
+        <div class="entry"><h4>Struktura</h4><p>Oprávnění pro: <strong>Vlastník</strong> · <strong>Skupina</strong> · <strong>Ostatní</strong></p></div>
+        <div class="entry"><h4>r · w · x</h4><p>read = 4, write = 2, execute = 1. Sčítají se → 7 = rwx, 6 = rw-, 4 = r--</p></div>
+        <div class="code-block" style="margin-top:12px">
+          <div class="cb-label">Příklad</div>
+          <pre>chmod 764 soubor
+<span class="comment"># 7 = rwx (vlastník)
+# 6 = rw- (skupina)
+# 4 = r-- (ostatní)</span>
+
+chmod u+rwx,g+rw,o+r soubor
+<span class="comment"># totéž, jinak zapsáno</span></pre>
+        </div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:8px;font-style:italic">"r,w,x / 4,2,1" — Nathan</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+    <div class="section-heading">
+      <div class="dot dot-green"></div>
+      <h2>Příkazy v terminálu</h2>
+    </div>
+
+    <div class="cmd-grid">
+      <div class="cmd-row"><code>whoami</code><span>Kdo jsem? → jméno uživatele</span></div>
+      <div class="cmd-row"><code>id</code><span>UID, GID a skupiny uživatele</span></div>
+      <div class="cmd-row"><code>uname -a</code><span>Info o systému a kernelu</span></div>
+      <div class="cmd-row"><code>pwd</code><span>Absolutní cesta aktuální složky</span></div>
+      <div class="cmd-row"><code>ls -la</code><span>Výpis všech souborů (i skrytých)</span></div>
+      <div class="cmd-row"><code>cd &lt;cesta&gt;</code><span>Přechod do složky</span></div>
+      <div class="cmd-row"><code>mkdir &lt;jméno&gt;</code><span>Vytvoří nový adresář</span></div>
+      <div class="cmd-row"><code>rmdir &lt;jméno&gt;</code><span>Smaže prázdný adresář</span></div>
+      <div class="cmd-row"><code>touch &lt;soubor&gt;</code><span>Vytvoří nový soubor</span></div>
+      <div class="cmd-row"><code>cat &lt;soubor&gt;</code><span>Vypíše obsah souboru</span></div>
+      <div class="cmd-row"><code>cp &lt;zdroj&gt; &lt;cíl&gt;</code><span>Zkopíruje soubor/složku (-r)</span></div>
+      <div class="cmd-row"><code>mv &lt;zdroj&gt; &lt;cíl&gt;</code><span>Přesune nebo přejmenuje</span></div>
+      <div class="cmd-row"><code>rm -rf &lt;cesta&gt;</code><span>Smaže vše rekurzivně ⚠️</span></div>
+      <div class="cmd-row"><code>tree</code><span>Vizuální strom adresářů</span></div>
+      <div class="cmd-row"><code>grep -r &lt;text&gt;</code><span>Hledá string v souborech</span></div>
+      <div class="cmd-row"><code>sudo &lt;příkaz&gt;</code><span>Spustí jako root</span></div>
+      <div class="cmd-row"><code>chmod / chown</code><span>Mění práva / vlastníka</span></div>
+      <div class="cmd-row"><code>wget / curl</code><span>Stahování souborů z webu</span></div>
+      <div class="cmd-row"><code>file &lt;soubor&gt;</code><span>Typ souboru přes magic numbers</span></div>
+      <div class="cmd-row"><code>top / htop / btop</code><span>Systémový monitor procesů</span></div>
+      <div class="cmd-row"><code>vim / nano / micro</code><span>Terminálové textové editory</span></div>
+    </div>
+  </div>
+
+  <!-- ===== PANEL 3: SÍTĚ ===== -->
+  <div class="panel" id="panel-site">
+    <div class="section-heading">
+      <div class="dot" style="background:#3b82f6"></div>
+      <h2>Sítě &amp; Síťová bezpečnost</h2>
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <div class="card-title" style="color:#3b82f6">Základní pojmy</div>
+        <div class="entry"><h4>LAN / WAN / Internet</h4><p>LAN = lokální síť. WAN = propojení více sítí. Internet = všechny sítě světa.</p></div>
+        <div class="entry"><h4>Switch vs Router</h4><p>Switch propojuje zařízení v LAN. Router směruje provoz mimo LAN (do WAN).</p></div>
+        <div class="entry"><h4>Server – Client – P2P</h4><p>Server poskytuje služby klientům. P2P = bez centrálního serveru, zařízení sdílí navzájem.</p></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="color:#3b82f6">Fyzická média</div>
+        <div class="entry"><h4>Měděný kabel (UTP/STP)</h4><p>Přenáší elektrické signály. Koncovka RJ-45. UTP náchylnější na rušení, STP má stínění.</p></div>
+        <div class="entry"><h4>Optický kabel</h4><p>Přenos světla — tenká křehká vlákna. Mnohem vyšší rychlosti a delší vzdálenosti.</p></div>
+        <div class="entry"><h4>Koaxiální kabel</h4><p>Dnes již zastaralý.</p></div>
+      </div>
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <div class="card-title" style="color:#3b82f6">Adresace</div>
+        <div class="entry"><h4>IPv4 (32-bit)</h4><p>4 oktety oddělené tečkami. ~4.3 miliard adres → dochází. Privátní rozsahy: 10.x.x.x, 172.16–31.x.x, 192.168.x.x</p></div>
+        <div class="entry"><h4>IPv6 (128-bit)</h4><p>Hexadecimální. 340 undecillionů adres. Postupná náhrada IPv4.</p></div>
+        <div class="entry"><h4>Loopback</h4><p>127.0.0.1 (localhost) — zařízení posílá data samo sobě.</p></div>
+        <div class="entry"><h4>MAC adresa</h4><p>Fyzická adresa síťové karty. 48-bit, hex formát. 1. část = výrobce, 2. část = karta. Příklad: 00:0a:95:9d:67:16</p></div>
+        <div class="entry"><h4>Maska sítě & Gateway</h4><p>Maska určuje počet IP adres v síti. Gateway = adresa routeru pro provoz mimo LAN.</p></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="color:#3b82f6">Protokoly</div>
+        <div class="entry"><h4>DNS</h4><p>Překlad doménových jmen na IP. ssps.cz → 1.2.3.4. Hierarchie: TLD → doména → subdoména.</p></div>
+        <div class="entry"><h4>DHCP</h4><p>Dynamické přidělování IP adres. Běží obvykle na routeru.</p></div>
+        <div class="entry"><h4>TCP vs UDP</h4><p>TCP = spolehlivý (kontrola ztrát, pomalejší). UDP = rychlý, bez kontroly — streaming, DNS.</p></div>
+        <div class="entry"><h4>HTTP(S) / SSH / Telnet</h4><p>HTTP port 80, HTTPS port 443 (šifrovaný). SSH port 22 (šifrované CLI). Telnet port 23 — zastaralý, nebezpečný.</p></div>
+        <div class="entry"><h4>ARP</h4><p>Mapuje IP adresu na MAC adresu v rámci LAN.</p></div>
+      </div>
+    </div>
+
+    <div class="card-wide">
+      <div class="card-title" style="color:#3b82f6">Topologie sítí</div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <span class="tag tag-cyan">Ring — kruh</span>
+        <span class="tag tag-cyan">Star — hvězda (nejběžnější)</span>
+        <span class="tag tag-cyan">Mesh — každý s každým</span>
+        <span class="tag tag-cyan">Bus — sdílená linka</span>
+        <span class="tag tag-cyan">Tree — strom</span>
+      </div>
+    </div>
+
+    <div class="card-wide">
+      <div class="card-title" style="color:#3b82f6">Síťové příkazy</div>
+      <div class="cmd-grid" style="margin-bottom:0">
+        <div class="cmd-row"><code>ping</code><span>Ověří spojení (ICMP)</span></div>
+        <div class="cmd-row"><code>traceroute / tracert</code><span>Celá cesta k zařízení</span></div>
+        <div class="cmd-row"><code>nslookup</code><span>DNS překlad domény / IP</span></div>
+        <div class="cmd-row"><code>ip a / ipconfig</code><span>Konfigurace síťových adaptérů</span></div>
+        <div class="cmd-row"><code>nmap / rustscan</code><span>Skenování portů a služeb ⚠️</span></div>
+        <div class="cmd-row"><code>wireshark / tcpdump</code><span>Zachytávání síťového provozu</span></div>
+      </div>
+    </div>
+
+    <div class="card-wide" style="margin-top:16px">
+      <div class="card-title" style="color: var(--yellow)">Wi-Fi bezpečnostní protokoly</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <span class="tag tag-red">WEP — zastaralý, děravý</span>
+        <span class="tag tag-yellow">WPA2 Personal</span>
+        <span class="tag tag-green">WPA2 Enterprise</span>
+        <span class="tag tag-green">WPA3 Personal — nejnovější</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PANEL 4: KRYPTOGRAFIE ===== -->
+  <div class="panel" id="panel-krypto">
+    <div class="section-heading">
+      <div class="dot dot-yellow"></div>
+      <h2>Kryptografie</h2>
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <div class="card-title" style="color:var(--yellow)">Šifrování</div>
+        <div class="entry"><h4>Symetrické</h4><p>1 klíč pro šifrování i dešifrování. Rychlejší. Příklady: <strong>AES</strong>, Serpent, Twofish.</p></div>
+        <div class="entry"><h4>Asymetrické</h4><p>2 klíče: <strong>veřejný</strong> (šifruje) + <strong>soukromý</strong> (dešifruje). Příklady: <strong>RSA</strong>, CRYSTALS-Kyber (post-kvantové).</p></div>
+        <div class="entry"><h4>Šifrování disku</h4><p><strong>LUKS</strong> (Linux standard, open-source). <strong>VeraCrypt</strong> (univerzální, all-OS, open-source).</p></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="color:var(--yellow)">Hash</div>
+        <div class="entry"><h4>Co je hash?</h4><p>"Otisk prstu" dat. Jednosměrná funkce — nejde dešifrovat zpět. Neměnný a unikátní.</p></div>
+        <div class="entry"><h4>Příklady</h4><p>MD5 (zastaralý), SHA-512, Blake2</p></div>
+        <div class="entry"><h4>Využití</h4><p>Ukládání hesel, digitální podpisy, ověření integrity dat.</p></div>
+        <div class="code-block" style="margin-top:12px">
+          <div class="cb-label">Ukázka MD5</div>
+          <pre>ahoj → <span style="color:var(--accent)">79c2b46ce2594ecbcb5b73e928345492</span></pre>
+        </div>
+        <div class="entry" style="margin-top:12px"><h4>Crackování hashů</h4><p>Wordlisty, Rainbow Tables. Nástroje: <strong>Hashcat</strong>, <strong>John the Ripper</strong>.</p></div>
+      </div>
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <div class="card-title" style="color:var(--yellow)">Kódování & Obfuskace</div>
+        <div class="entry"><h4>Kódování (Encoding)</h4><p>Přepis do jiné formy dle algoritmu. <strong>NENÍ šifrování!</strong> Příklady: Base64, Morseovka, Braillovo písmo.</p></div>
+        <div class="entry"><h4>Obfuskace</h4><p>Znesnadnění čitelnosti kódu pro člověka. Využívá kódování, ale nemá vliv na funkci kódu.</p></div>
+        <div class="entry"><h4>Digitální podpis</h4><p>Odesílatel podepisuje hash zprávy svým <strong>soukromým klíčem</strong>. Příjemce ověří veřejným klíčem.</p></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="color:var(--yellow)">Signal & Komunikace</div>
+        <div class="entry"><h4>Double Ratchet algoritmus</h4><p>Rotace klíčů — každá zpráva má jiný klíč. Zaručuje <strong>forward secrecy</strong> (staré zprávy zůstanou tajné) a <strong>post-compromise security</strong> (bezpečnost se sama obnoví).</p></div>
+        <div class="entry"><h4>Diffie-Hellman</h4><p>Algoritmus pro bezpečnou výměnu symetrických klíčů přes nezabezpečený kanál.</p></div>
+        <div class="entry"><h4>Post-kvantová kryptografie</h4><p>Ochrana před kvantovými počítači. Ohrožena je hlavně asymetrická kryptografie (RSA).</p></div>
+      </div>
+    </div>
+
+    <div class="card-wide">
+      <div class="card-title" style="color:var(--yellow)">Kryptoměny & Blockchain</div>
+      <div class="entry"><h4>Blockchain</h4><p>Decentralizovaná databáze transakcí. Transakce jsou veřejně dohledatelné (Bitcoin, Ethereum).</p></div>
+      <div class="entry"><h4>Monero</h4><p>Jediná známá kryptoměna s plnou anonymitou transakcí.</p></div>
+      <div class="entry"><h4>Využití v kyberkriminalitě</h4><p>Ransomware skupiny požadují platby v kryptoměnách kvůli anonymitě.</p></div>
+    </div>
+  </div>
+
+  <!-- ===== PANEL 5: PROGRAMOVÁNÍ ===== -->
+  <div class="panel" id="panel-prog">
+    <div class="section-heading">
+      <div class="dot dot-purple"></div>
+      <h2>Programování</h2>
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <div class="card-title" style="color:#a78bfa">Základy algoritmizace</div>
+        <div class="entry"><h4>Algoritmus</h4><p>Přesný postup k řešení problému. Vlastnosti: <strong>konečnost</strong>, <strong>jednoznačnost</strong>, <strong>obecnost</strong>.</p></div>
+        <div class="entry"><h4>Datové typy</h4><p><code style="color:var(--accent);font-family:var(--mono);font-size:11px">int</code> celá čísla · <code style="color:var(--accent);font-family:var(--mono);font-size:11px">double</code> desetinná · <code style="color:var(--accent);font-family:var(--mono);font-size:11px">string</code> text · <code style="color:var(--accent);font-family:var(--mono);font-size:11px">char</code> znak · <code style="color:var(--accent);font-family:var(--mono);font-size:11px">bool</code> true/false</p></div>
+        <div class="entry"><h4>Syntaxe</h4><p>Sada pravidel, při jejichž porušení program nefunguje. V C# každý příkaz končí <code style="color:var(--orange);font-family:var(--mono)">;</code></p></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="color:#a78bfa">Pseudokód — příklad</div>
+        <div class="code-block">
+          <div class="cb-label">Algoritmus ověření hesla</div>
+          <pre><span class="kw">Vstup:</span> heslo
+<span class="kw">Pokud</span> heslo == 1234:
+    Vypiš "Správné heslo"
+<span class="kw">Jinak:</span>
+    Vypiš "Špatné heslo"</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div>
+        <div class="code-block">
+          <div class="cb-label">Python — Hello World</div>
+          <pre><span class="kw">print</span>(<span style="color:var(--green)">"Hello, World!"</span>)</pre>
+        </div>
+        <div class="code-block">
+          <div class="cb-label">Python — Input & Output</div>
+          <pre>name = <span class="kw">input</span>(<span style="color:var(--green)">"Zadej jméno: "</span>)
+<span class="kw">print</span>(<span style="color:var(--green)">"Ahoj "</span> + name)</pre>
+        </div>
+        <div class="code-block">
+          <div class="cb-label">Python — If / Elif / Else</div>
+          <pre>age = 18
+<span class="kw">if</span> age &lt; 18:
+    print(<span style="color:var(--green)">"Jsi dítě"</span>)
+<span class="kw">elif</span> age &gt;= 65:
+    print(<span style="color:var(--green)">"Jsi důchodce"</span>)
+<span class="kw">else</span>:
+    print(<span style="color:var(--green)">"Jsi dospělý"</span>)</pre>
+        </div>
+        <div class="code-block">
+          <div class="cb-label">Python — For Loop</div>
+          <pre><span class="kw">for</span> i <span class="kw">in</span> range(10):
+    print(i)</pre>
+        </div>
+        <div class="code-block">
+          <div class="cb-label">Python — While Loop</div>
+          <pre>i = 0
+<span class="kw">while</span> i &lt; 5:
+    print(i)
+    i += 1</pre>
+        </div>
+      </div>
+      <div>
+        <div class="code-block">
+          <div class="cb-label">C — Hello World</div>
+          <pre>#include &lt;stdio.h&gt;
+
+int <span class="kw">main</span>() {
+    <span class="kw">printf</span>(<span style="color:var(--green)">"Hello, World!"</span>);
+    <span class="kw">return</span> 0;
+}</pre>
+        </div>
+        <div class="code-block">
+          <div class="cb-label">C — Input & Output</div>
+          <pre>#include &lt;stdio.h&gt;
+
+int <span class="kw">main</span>() {
+    char name[50];
+    <span class="kw">printf</span>(<span style="color:var(--green)">"Zadej jméno: "</span>);
+    <span class="kw">scanf</span>(<span style="color:var(--green)">"%s"</span>, name);
+    <span class="kw">printf</span>(<span style="color:var(--green)">"Ahoj %s"</span>, name);
+    <span class="kw">return</span> 0;
+}</pre>
+        </div>
+        <div class="code-block">
+          <div class="cb-label">C — If / Else If / Else</div>
+          <pre>int age = 18;
+<span class="kw">if</span> (age &lt; 18) {
+    <span class="kw">printf</span>(<span style="color:var(--green)">"Jsi dítě"</span>);
+} <span class="kw">else if</span> (age &gt;= 65) {
+    <span class="kw">printf</span>(<span style="color:var(--green)">"Jsi důchodce"</span>);
+} <span class="kw">else</span> {
+    <span class="kw">printf</span>(<span style="color:var(--green)">"Jsi dospělý"</span>);
+}</pre>
+        </div>
+        <div class="code-block">
+          <div class="cb-label">C — For Loop</div>
+          <pre><span class="kw">for</span> (int i = 0; i &lt; 10; i++) {
+    <span class="kw">printf</span>(<span style="color:var(--green)">"%d\n"</span>, i);
+}</pre>
+        </div>
+        <div class="code-block">
+          <div class="cb-label">C — Komentáře</div>
+          <pre><span class="comment">// jednořádkový komentář</span>
+
+<span class="comment">/*
+  víceřádkový
+  komentář
+*/</span></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PANEL 6: ÚTOKY ===== -->
+  <div class="panel" id="panel-utoky">
+    <div class="section-heading">
+      <div class="dot dot-red"></div>
+      <h2>Kybernetické útoky &amp; OSINT</h2>
+    </div>
+
+    <div class="alert alert-warn">
+      ⚠️ &nbsp;Tento obsah slouží <strong>pouze pro vzdělávací účely</strong>. Útoky na cizí systémy bez povolení jsou nelegální. Dodržujte zákony své země.
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <div class="card-title" style="color:var(--red)">Zranitelnosti</div>
+        <div class="entry"><h4>Exploit</h4><p>Program nebo skript využívající programátorskou chybu v kódu.</p></div>
+        <div class="entry"><h4>CVE</h4><p>Common Vulnerabilities and Exposures — identifikátor známé zranitelnosti. Př: log4shell = CVE-2021-44228</p></div>
+        <div class="entry"><h4>CWE</h4><p>Kategorizace typů slabostí. Př: CWE-79 = XSS.</p></div>
+        <div class="entry"><h4>CVSS</h4><p>Skóre závažnosti zranitelnosti (verze 4.0). Zahrnuje vektor útoku, komplexitu, dopad…</p></div>
+        <div class="entry"><h4>Zero-day</h4><p>Exploit pro chybu, která není veřejně známá. Neexistuje patch.</p></div>
+        <div class="entry"><h4>MITRE ATT&amp;CK</h4><p>Framework pro analýzu útočných technik a APT skupin. → attack.mitre.org</p></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="color:var(--red)">Typy útoků</div>
+        <div class="entry"><h4>Phishing</h4><p>Podvodné emaily imitující banku / službu. Cíl: hesla, kreditní karty. Poznáme podle podezřelé domény (např. @cs0b.cz místo @csob.cz). Nejčastější Initial Access (MITRE).</p></div>
+        <div class="entry"><h4>DoS / DDoS</h4><p>Zahlcení serveru požadavky. DDoS využívá <strong>botnet</strong> (síť ovládaných PC s různými IP) — těžko blokovat.</p></div>
+        <div class="entry"><h4>XSS</h4><p>Cross-Site Scripting — vložení JS kódu do webové stránky. Cíl: cookies, localStorage, přesměrování.</p></div>
+        <div class="entry"><h4>SQLi</h4><p>SQL Injection — vložení kódu do SQL dotazu. Cíl: hesla a citlivá data z DB.</p></div>
+        <div class="entry"><h4>Sociální inženýrství</h4><p>Manipulace lidí pro získání informací. Phishing je příkladem.</p></div>
+      </div>
+    </div>
+
+    <div class="card-wide">
+      <div class="card-title" style="color:var(--orange)">OSINT</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px">
+        <div class="entry"><h4>OSINT Framework</h4><p>Soubor nástrojů a technik pro sběr dat z veřejných zdrojů. → osintframework.com</p></div>
+        <div class="entry"><h4>Shodan.io</h4><p>Vyhledávač pro zařízení připojená k internetu — IoT, kamery, servery.</p></div>
+        <div class="entry"><h4>Google Dorking</h4><p>Pokročilé vyhledávací operátory pro odhalení nechráněných dat.</p></div>
+      </div>
+    </div>
+
+    <div class="code-block">
+      <div class="cb-label">Google Dorking — příklady</div>
+      <pre><span class="cmd">site:</span>ssps.cz <span class="cmd">ext:</span>pdf          <span class="comment"># všechna PDF na webu školy</span>
+<span class="cmd">inurl:</span>ssps.cz <span class="cmd">ext:</span>pdf          <span class="comment"># alternativa přes URL</span>
+<span class="cmd">intitle:</span>"Index of" wp-admin    <span class="comment"># nekryté admin panely</span>
+<span class="cmd">filetype:</span>env DB_PASSWORD        <span class="comment"># hesla v .env souborech</span>
+<span class="cmd">inurl:</span>.git                      <span class="comment"># exponovaný zdrojový kód</span>
+<span class="cmd">filename:</span>config.php dbpasswd   <span class="comment"># hesla v konfiguracích</span></pre>
+    </div>
+
+    <div class="divider"></div>
+    <div class="section-heading">
+      <div class="dot dot-orange"></div>
+      <h2>Nástroje útočníka</h2>
+    </div>
+
+    <div class="cmd-grid">
+      <div class="cmd-row"><code>BurpSuite</code><span>Analýza & úprava HTTP požadavků</span></div>
+      <div class="cmd-row"><code>Wireshark</code><span>GUI analýza síťového provozu</span></div>
+      <div class="cmd-row"><code>tcpdump</code><span>CLI zachytávání paketů</span></div>
+      <div class="cmd-row"><code>Nmap / Rustscan</code><span>Skenování portů a služeb</span></div>
+      <div class="cmd-row"><code>Metasploit</code><span>Framework pro exploitaci zranitelností</span></div>
+      <div class="cmd-row"><code>Hydra</code><span>Brute-force útoky na hesla (HTTP, SSH, FTP…)</span></div>
+      <div class="cmd-row"><code>Hashcat</code><span>Crackování hashů (GPU)</span></div>
+      <div class="cmd-row"><code>John the Ripper</code><span>Crackování hashů (CPU)</span></div>
+      <div class="cmd-row"><code>FFUF</code><span>Fuzz Faster U Fool — fuzzing cest, subdomén</span></div>
+    </div>
+
+    <div class="divider"></div>
+    <div class="section-heading">
+      <div class="dot dot-green"></div>
+      <h2>Ochrana & CTF</h2>
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <div class="card-title" style="color:var(--green)">Jak se bránit</div>
+        <div class="entry"><h4>Aktualizace softwaru</h4><p>Záplatování known CVE zranitelností.</p></div>
+        <div class="entry"><h4>Silná hesla + Password Manager</h4><p>KeePass, BitWarden — nikdy neopakovat hesla.</p></div>
+        <div class="entry"><h4>Dvoufaktorová autentizace (2FA)</h4><p>Druhý faktor zásadně ztíží přístup útočníka.</p></div>
+        <div class="entry"><h4>Firewall & Antivirus</h4><p>Creeper (první virus) vs Reaper (první antivirus) — 1971.</p></div>
+        <div class="entry"><h4>Bezpečné frameworky</h4><p>Správná sanitizace vstupů zabrání XSS a SQLi.</p></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="color:var(--green)">CTF soutěže</div>
+        <div class="entry"><h4>Co je CTF?</h4><p>Capture The Flag — simulace reálných útoků. Cíl: najít textový řetězec (flag) na cílovém stroji. Př: <code style="color:var(--accent);font-family:var(--mono);font-size:11px">flag{1234abcdef}</code></p></div>
+        <div class="entry"><h4>Kategorie úloh</h4>
+          <div class="tags" style="margin-top:6px">
+            <span class="tag tag-cyan">Web</span>
+            <span class="tag tag-yellow">Crypto</span>
+            <span class="tag tag-purple">Forensics</span>
+            <span class="tag tag-red">Pwn</span>
+            <span class="tag tag-orange">Reversing</span>
+            <span class="tag tag-green">Misc</span>
+          </div>
+        </div>
+        <div class="entry" style="margin-top:12px"><h4>Kde trénovat</h4>
+          <div class="tags" style="margin-top:6px">
+            <span class="tag tag-cyan">tryhackme.com</span>
+            <span class="tag tag-green">picoctf.org</span>
+            <span class="tag tag-purple">hackthebox.com</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <div class="wrap">SSPS KBB Workshop · hater.dev · přijímací řízení</div>
+</footer>
+
+<script>
+  function show(id, btn) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('panel-' + id).classList.add('active');
+    btn.classList.add('active');
+  }
+</script>
+</body>
+</html>
